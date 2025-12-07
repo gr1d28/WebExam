@@ -6,4 +6,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="WebExam-Front\Models\exam.ts" />
+    <None Remove="WebExam-Front\Models\question.ts" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <TypeScriptCompile Include="WebExam-Front\Models\exam.ts" />
+    <TypeScriptCompile Include="WebExam-Front\Models\question.ts" />
+    <TypeScriptCompile Include="WebExam-Front\Models\user.ts" />
+  </ItemGroup>
+
 </Project>
