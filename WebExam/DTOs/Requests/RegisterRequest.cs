@@ -1,8 +1,13 @@
 ﻿using WebExam.Models;
 
-namespace WebExam.DTOs
+namespace WebExam.DTOs.Requests
 {
-    public class Register
+    public class LoginRequest
+    {
+        public string Email { get; set; }
+        public string Password { get; set; }
+    }
+    public class RegisterRequest
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
