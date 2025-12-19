@@ -139,6 +139,26 @@ namespace WebExam.Services
             // Проверка типа вопроса
             ValidateAnswerType(question.Type, request);
 
+            // ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: Убедитесь, что выбранные варианты существуют
+            if (question.Type == QuestionType.SingleChoice || question.Type == QuestionType.MultipleChoice)
+            {
+                if (request.SelectedOptionIds != null && request.SelectedOptionIds.Any())
+                {
+                    var validOptionIds = question.AnswerOptions.Select(ao => ao.Id).ToList();
+                    var invalidOptions = request.SelectedOptionIds
+                        .Where(id => !validOptionIds.Contains(id))
+                        .ToList();
+
+                    if (invalidOptions.Any())
+                    {
+                        throw new ArgumentException(
+                            $"Invalid answer option IDs: {string.Join(", ", invalidOptions)}. " +
+                            $"Valid options for question {question.Id}: {string.Join(", ", validOptionIds)}"
+                        );
+                    }
+                }
+            }
+
             // Поиск существующего ответа
             var existingAnswer = await _userAnswerRepository.GetAnswerForQuestionAsync(sessionId, request.QuestionId);
 
@@ -360,17 +380,51 @@ namespace WebExam.Services
                 AnsweredAt = DateTime.UtcNow
             };
 
-            await _userAnswerRepository.AddAsync(userAnswer);
+            // Сохраняем UserAnswer и получаем его Id
+            userAnswer = await _userAnswerRepository.AddAsync(userAnswer);
 
             // Сохранение выбранных вариантов для вопросов с выбором
             if (questionType == QuestionType.SingleChoice || questionType == QuestionType.MultipleChoice)
             {
-                if (request.SelectedOptionIds.Any())
+                if (request.SelectedOptionIds != null && request.SelectedOptionIds.Any())
                 {
-                    await _selectedAnswerOptionRepository.AddSelectedOptionsAsync(
-                        userAnswer.Id, request.SelectedOptionIds);
+                    // ВАЖНО: Проверяем, что варианты ответа существуют и принадлежат правильному вопросу
+                    await ValidateAndAddSelectedOptionsAsync(userAnswer.Id, request.QuestionId, request.SelectedOptionIds);
                 }
             }
+        }
+
+        private async Task ValidateAndAddSelectedOptionsAsync(int userAnswerId, int questionId, List<int> selectedOptionIds)
+        {
+            // Получаем вопрос с вариантами ответов
+            var question = await _questionRepository.GetQuestionWithOptionsAsync(questionId);
+            if (question == null)
+            {
+                throw new InvalidOperationException($"Question with id {questionId} not found");
+            }
+
+            // Получаем все допустимые ID вариантов ответа для этого вопроса
+            var validOptionIds = question.AnswerOptions?.Select(ao => ao.Id).ToList() ?? new List<int>();
+
+            // Фильтруем только допустимые ID
+            var validSelectedOptionIds = selectedOptionIds
+                .Where(id => validOptionIds.Contains(id))
+                .Distinct()
+                .ToList();
+
+            if (!validSelectedOptionIds.Any())
+            {
+                throw new ArgumentException($"None of the selected options belong to question {questionId}");
+            }
+
+            // Проверяем разницу между отправленными и допустимыми ID
+            var invalidOptions = selectedOptionIds.Where(id => !validOptionIds.Contains(id)).ToList();
+            if (invalidOptions.Any())
+            {
+                throw new ArgumentException($"Invalid option IDs for question {questionId}: {string.Join(", ", invalidOptions)}");
+            }
+
+            await _selectedAnswerOptionRepository.AddSelectedOptionsAsync(userAnswerId, validSelectedOptionIds);
         }
 
         private async Task UpdateUserAnswerAsync(UserAnswer existingAnswer, SubmitAnswerRequest request, QuestionType questionType)
@@ -383,9 +437,50 @@ namespace WebExam.Services
             // Обновление выбранных вариантов для вопросов с выбором
             if (questionType == QuestionType.SingleChoice || questionType == QuestionType.MultipleChoice)
             {
-                await _selectedAnswerOptionRepository.UpdateSelectedOptionsAsync(
-                    existingAnswer.Id, request.SelectedOptionIds);
+                if (request.SelectedOptionIds != null && request.SelectedOptionIds.Any())
+                {
+                    // ВАЖНО: Проверяем, что варианты ответа существуют и принадлежат правильному вопросу
+                    await ValidateAndUpdateSelectedOptionsAsync(existingAnswer.Id, request.QuestionId, request.SelectedOptionIds);
+                }
+                else
+                {
+                    // Удаляем все выбранные варианты, если они были
+                    await _selectedAnswerOptionRepository.ClearSelectedOptionsAsync(existingAnswer.Id);
+                }
             }
+        }
+
+        private async Task ValidateAndUpdateSelectedOptionsAsync(int userAnswerId, int questionId, List<int> selectedOptionIds)
+        {
+            // Получаем вопрос с вариантами ответов
+            var question = await _questionRepository.GetQuestionWithOptionsAsync(questionId);
+            if (question == null)
+            {
+                throw new InvalidOperationException($"Question with id {questionId} not found");
+            }
+
+            // Получаем все допустимые ID вариантов ответа для этого вопроса
+            var validOptionIds = question.AnswerOptions?.Select(ao => ao.Id).ToList() ?? new List<int>();
+
+            // Фильтруем только допустимые ID
+            var validSelectedOptionIds = selectedOptionIds
+                .Where(id => validOptionIds.Contains(id))
+                .Distinct()
+                .ToList();
+
+            if (!validSelectedOptionIds.Any())
+            {
+                throw new ArgumentException($"None of the selected options belong to question {questionId}");
+            }
+
+            // Проверяем разницу между отправленными и допустимыми ID
+            var invalidOptions = selectedOptionIds.Where(id => !validOptionIds.Contains(id)).ToList();
+            if (invalidOptions.Any())
+            {
+                throw new ArgumentException($"Invalid option IDs for question {questionId}: {string.Join(", ", invalidOptions)}");
+            }
+
+            await _selectedAnswerOptionRepository.UpdateSelectedOptionsAsync(userAnswerId, validSelectedOptionIds);
         }
 
         private async Task<ExamResult> CalculateExamResultAsync(ExamSession session)

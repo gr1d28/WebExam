@@ -72,7 +72,7 @@ namespace WebExam.Services
             return response;
         }
 
-        public async Task<IEnumerable<ExamStatisticsResponse>> GetExamStatisticsAsync(int examId, int userId)
+        public async Task<ExamStatisticsResponse> GetExamStatisticsAsync(int examId, int userId)
         {
             var exam = await _examRepository.GetByIdAsync(examId);
             if (exam == null)
@@ -101,7 +101,7 @@ namespace WebExam.Services
             // Распределение оценок
             statistics.ScoreDistribution = CalculateScoreDistribution(resultList);
 
-            return new List<ExamStatisticsResponse> { statistics };
+            return statistics;
         }
 
         public async Task<ExamResultDetailsResponse> GetResultDetailsAsync(int resultId, int userId)
@@ -118,6 +118,56 @@ namespace WebExam.Services
             }
 
             return await MapToExamResultDetailsResponse(result);
+        }
+
+        public async Task<IEnumerable<ExamAttemptsResponse>> GetExamAttemptsAsync(int examId, int userId)
+        {
+            var exam = await _examRepository.GetByIdAsync(examId);
+            if (exam == null)
+            {
+                throw new KeyNotFoundException("Экзамен не найден");
+            }
+
+            // Проверка прав доступа (только создатель или админ)
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (exam.CreatedByUserId != userId && user?.Role != UserRole.Admin && user?.Role != UserRole.Teacher)
+            {
+                throw new UnauthorizedAccessException("Доступ запрещен");
+            }
+
+            var results = await _examResultRepository.GetExamAttemptsWithUsersAsync(examId);
+            var resultList = results.ToList();
+
+            // Группируем по пользователю для подсчета номера попытки
+            var attemptsByUser = resultList
+                .GroupBy(r => r.ExamSession.UserId)
+                .ToDictionary(g => g.Key, g => g.OrderBy(r => r.CalculatedAt).ToList());
+
+            var response = new List<ExamAttemptsResponse>();
+
+            foreach (var result in resultList.OrderByDescending(r => r.CalculatedAt))
+            {
+                var userAttempts = attemptsByUser[result.ExamSession.UserId];
+                var attemptNumber = userAttempts.IndexOf(result) + 1;
+
+                response.Add(new ExamAttemptsResponse
+                {
+                    ResultId = result.Id,
+                    ExamSessionId = result.ExamSessionId,
+                    UserId = result.ExamSession.UserId,
+                    UserFullName = $"{result.ExamSession.User?.FirstName} {result.ExamSession.User?.LastName}".Trim(),
+                    UserEmail = result.ExamSession.User?.Email ?? string.Empty,
+                    TotalScore = result.TotalScore,
+                    MaxPossibleScore = result.MaxPossibleScore,
+                    Percentage = result.Percentage,
+                    IsPassed = result.IsPassed,
+                    CalculatedAt = result.CalculatedAt,
+                    Feedback = result.Feedback,
+                    AttemptNumber = attemptNumber
+                });
+            }
+
+            return response;
         }
 
         private List<ScoreDistributionResponse> CalculateScoreDistribution(List<ExamResult> results)

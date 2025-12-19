@@ -64,7 +64,7 @@ namespace WebExam.Data.Configurations
             builder.HasMany(e => e.ExamSessions)
                 .WithOne(es => es.Exam)
                 .HasForeignKey(es => es.ExamId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

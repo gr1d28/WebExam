@@ -358,7 +358,7 @@ namespace WebExam.Migrations
                     b.HasOne("WebExam.Models.Question", "Question")
                         .WithMany("AnswerOptions")
                         .HasForeignKey("QuestionId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Question");
@@ -380,7 +380,7 @@ namespace WebExam.Migrations
                     b.HasOne("WebExam.Models.ExamSession", "ExamSession")
                         .WithOne("ExamResult")
                         .HasForeignKey("WebExam.Models.ExamResult", "ExamSessionId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("WebExam.Models.User", null)
@@ -415,7 +415,7 @@ namespace WebExam.Migrations
                     b.HasOne("WebExam.Models.Exam", "Exam")
                         .WithMany("Questions")
                         .HasForeignKey("ExamId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Exam");
@@ -432,7 +432,7 @@ namespace WebExam.Migrations
                     b.HasOne("WebExam.Models.UserAnswer", "UserAnswer")
                         .WithMany("SelectedOptions")
                         .HasForeignKey("UserAnswerId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("AnswerOption");
@@ -445,7 +445,7 @@ namespace WebExam.Migrations
                     b.HasOne("WebExam.Models.ExamSession", "ExamSession")
                         .WithMany("UserAnswers")
                         .HasForeignKey("ExamSessionId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("WebExam.Models.Question", "Question")

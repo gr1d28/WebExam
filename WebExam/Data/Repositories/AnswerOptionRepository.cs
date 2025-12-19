@@ -61,5 +61,13 @@ namespace WebExam.Data.Repositories
 
             return optionIds.All(id => validOptionIds.Contains(id));
         }
+
+        public async Task<IEnumerable<AnswerOption>> GetAnswerOptionsByQuestionAsync(int questionId)
+        {
+            return await _context.AnswerOptions
+                .Where(ao => ao.QuestionId == questionId)
+                .OrderBy(ao => ao.Order)
+                .ToListAsync();
+        }
     }
 }
