@@ -1,24 +1,28 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebExam.Services.Interfaces;
+using Microsoft.Extensions.Logging;
 using WebExam.DTOs.Requests;
 using WebExam.DTOs.Responses;
+using WebExam.Services.Interfaces;
 
 namespace WebExam.Controllers
 {
     public class AuthController : BaseApiController
     {
         private readonly IAuthService _authService;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, ILogger<AuthController> logger)
         {
             _authService = authService;
+            _logger = logger;
         }
 
         [HttpPost("register")]
         [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
+            _logger.LogInformation("Register data: {Requset}", request);
             try
             {
                 var result = await _authService.RegisterAsync(request);
@@ -34,6 +38,7 @@ namespace WebExam.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
+            _logger.LogInformation("Login attempt for email: {Email}", request.Email);
             try
             {
                 var result = await _authService.LoginAsync(request);

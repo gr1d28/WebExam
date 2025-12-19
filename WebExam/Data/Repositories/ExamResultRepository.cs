@@ -108,5 +108,17 @@ namespace WebExam.Data.Repositories
             return await _context.ExamResults
                 .CountAsync(er => er.ExamSession.ExamId == examId);
         }
+
+        public async Task<IEnumerable<ExamResult>> GetExamAttemptsWithUsersAsync(int examId)
+        {
+            return await _context.ExamResults
+                .Include(er => er.ExamSession)
+                    .ThenInclude(es => es.User)
+                .Include(er => er.ExamSession)
+                    .ThenInclude(es => es.Exam)
+                .Where(er => er.ExamSession.ExamId == examId)
+                .OrderByDescending(er => er.CalculatedAt)
+                .ToListAsync();
+        }
     }
 }

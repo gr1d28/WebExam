@@ -40,4 +40,20 @@ namespace WebExam.DTOs.Responses
         public bool? IsCorrect { get; set; }
         // Note: IsCorrect обычно не отправляется клиенту до окончания экзамена
     }
+
+    public class ExamAttemptsResponse
+    {
+        public int ResultId { get; set; }
+        public int ExamSessionId { get; set; }
+        public int UserId { get; set; }
+        public string UserFullName { get; set; }
+        public string UserEmail { get; set; }
+        public double TotalScore { get; set; }
+        public double MaxPossibleScore { get; set; }
+        public double Percentage { get; set; }
+        public bool IsPassed { get; set; }
+        public DateTime CalculatedAt { get; set; }
+        public string? Feedback { get; set; }
+        public int AttemptNumber { get; set; }
+    }
 }

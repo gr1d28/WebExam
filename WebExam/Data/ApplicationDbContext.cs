@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Reflection;
+using WebExam.Data.Configurations;
 using WebExam.Models;
 
 
@@ -34,6 +35,15 @@ namespace WebExam.Data
             {
                 relationship.DeleteBehavior = DeleteBehavior.Restrict;
             }
+
+            modelBuilder.ApplyConfiguration(new ExamConfiguration());
+            modelBuilder.ApplyConfiguration(new QuestionConfiguration());
+            modelBuilder.ApplyConfiguration(new AnswerOptionConfiguration());
+            modelBuilder.ApplyConfiguration(new ExamSessionConfiguration());
+            modelBuilder.ApplyConfiguration(new UserAnswerConfiguration());
+            modelBuilder.ApplyConfiguration(new SelectedAnswerOptionConfiguration());
+            modelBuilder.ApplyConfiguration(new ExamResultConfiguration());
+            modelBuilder.ApplyConfiguration(new UserConfiguration());
 
             // Глобальные фильры (например, для soft delete)
             // modelBuilder.Entity<User>().HasQueryFilter(u => u.IsActive);

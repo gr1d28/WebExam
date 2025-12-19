@@ -32,6 +32,8 @@ namespace WebExam.Data.Repositories
         public async Task<IEnumerable<Exam>> GetPublishedExamsAsync()
         {
             return await _dbSet
+                .Include(e => e.CreatedBy)
+                .Include(e => e.Questions)
                 .Where(e => e.IsPublished)
                 .OrderByDescending(e => e.CreatedAt)
                 .ToListAsync();
@@ -40,6 +42,8 @@ namespace WebExam.Data.Repositories
         public async Task<IEnumerable<Exam>> GetExamsByCreatorAsync(int userId)
         {
             return await _dbSet
+                .Include(e => e.CreatedBy)
+                .Include(e => e.Questions)
                 .Where(e => e.CreatedByUserId == userId)
                 .OrderByDescending(e => e.CreatedAt)
                 .ToListAsync();

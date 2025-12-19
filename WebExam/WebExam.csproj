@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -7,8 +7,24 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="WebExam-Front\Models\exam.ts" />
-    <None Remove="WebExam-Front\Models\question.ts" />
+    <None Remove="webexam-frontend\src\api\authApi.ts" />
+    <None Remove="webexam-frontend\src\api\axiosConfig.ts" />
+    <None Remove="webexam-frontend\src\api\examApi.ts" />
+    <None Remove="webexam-frontend\src\api\examTakingApi.ts" />
+    <None Remove="webexam-frontend\src\api\resultsApi.ts" />
+    <None Remove="webexam-frontend\src\components\common\ProtectedRoute.tsx" />
+    <None Remove="webexam-frontend\src\components\layout\Layout.tsx" />
+    <None Remove="webexam-frontend\src\context\AuthContext.tsx" />
+    <None Remove="webexam-frontend\src\pages\CreatePage.tsx" />
+    <None Remove="webexam-frontend\src\pages\EditExamPage.tsx" />
+    <None Remove="webexam-frontend\src\pages\ExamListPage.tsx" />
+    <None Remove="webexam-frontend\src\pages\ExamResultsPage.tsx" />
+    <None Remove="webexam-frontend\src\pages\ExamTakingPage.tsx" />
+    <None Remove="webexam-frontend\src\pages\LoginPage.tsx" />
+    <None Remove="webexam-frontend\src\pages\RegisterPage.tsx" />
+    <None Remove="webexam-frontend\src\pages\ResultsPage.tsx" />
+    <None Remove="webexam-frontend\src\pages\StudentDashboardPage.tsx" />
+    <None Remove="webexam-frontend\src\pages\TeacherDashboardPage.tsx" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,9 +39,24 @@
   </ItemGroup>
 
   <ItemGroup>
-    <TypeScriptCompile Include="WebExam-Front\Models\exam.ts" />
-    <TypeScriptCompile Include="WebExam-Front\Models\question.ts" />
-    <TypeScriptCompile Include="WebExam-Front\Models\user.ts" />
+    <TypeScriptCompile Include="webexam-frontend\src\api\authApi.ts" />
+    <TypeScriptCompile Include="webexam-frontend\src\api\axiosConfig.ts" />
+    <TypeScriptCompile Include="webexam-frontend\src\api\examApi.ts" />
+    <TypeScriptCompile Include="webexam-frontend\src\api\examTakingApi.ts" />
+    <TypeScriptCompile Include="webexam-frontend\src\api\resultsApi.ts" />
+    <TypeScriptCompile Include="webexam-frontend\src\components\common\ProtectedRoute.tsx" />
+    <TypeScriptCompile Include="webexam-frontend\src\components\layout\Layout.tsx" />
+    <TypeScriptCompile Include="webexam-frontend\src\context\AuthContext.tsx" />
+    <TypeScriptCompile Include="webexam-frontend\src\pages\CreatePage.tsx" />
+    <TypeScriptCompile Include="webexam-frontend\src\pages\EditExamPage.tsx" />
+    <TypeScriptCompile Include="webexam-frontend\src\pages\ExamListPage.tsx" />
+    <TypeScriptCompile Include="webexam-frontend\src\pages\ExamResultsPage.tsx" />
+    <TypeScriptCompile Include="webexam-frontend\src\pages\ExamTakingPage.tsx" />
+    <TypeScriptCompile Include="webexam-frontend\src\pages\LoginPage.tsx" />
+    <TypeScriptCompile Include="webexam-frontend\src\pages\RegisterPage.tsx" />
+    <TypeScriptCompile Include="webexam-frontend\src\pages\ResultsPage.tsx" />
+    <TypeScriptCompile Include="webexam-frontend\src\pages\StudentDashboardPage.tsx" />
+    <TypeScriptCompile Include="webexam-frontend\src\pages\TeacherDashboardPage.tsx" />
   </ItemGroup>
 
 </Project>

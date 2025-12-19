@@ -98,5 +98,29 @@ namespace WebExam.Controllers
                 return ErrorResponse(ex.Message);
             }
         }
+
+        [HttpGet("exam/{examId}/attempts")]
+        [Authorize(Roles = "Teacher,Admin")]
+        public async Task<IActionResult> GetExamAttempts(int examId)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var attempts = await _resultService.GetExamAttemptsAsync(examId, userId);
+                return OkResponse(attempts);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return UnauthorizedResponse(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFoundResponse(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return ErrorResponse(ex.Message);
+            }
+        }
     }
 }

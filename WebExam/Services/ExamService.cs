@@ -82,6 +82,11 @@ namespace WebExam.Services
             exam.IsPublished = request.IsPublished;
             exam.UpdatedAt = DateTime.UtcNow;
 
+            if (request.Questions != null)
+            {
+                await UpdateQuestionsAsync(examId, request.Questions);
+            }
+
             await _examRepository.UpdateAsync(exam);
 
             return await GetExamDetailsAsync(examId);
@@ -260,6 +265,122 @@ namespace WebExam.Services
         {
             var exam = await _examRepository.GetExamWithDetailsAsync(examId);
             return MapToExamDetailsResponse(exam);
+        }
+
+        private async Task UpdateQuestionsAsync(int examId, List<UpdateQuestionRequest> questionRequests)
+        {
+            // Получаем текущие вопросы
+            var currentQuestions = await _questionRepository.GetQuestionsByExamAsync(examId);
+            var currentQuestionDict = currentQuestions.ToDictionary(q => q.Id);
+
+            // Словарь для хранения ID новых вопросов
+            var newQuestionIds = new Dictionary<int, int>();
+
+            foreach (var questionRequest in questionRequests)
+            {
+                if (questionRequest.Id.HasValue && currentQuestionDict.ContainsKey(questionRequest.Id.Value))
+                {
+                    // Обновление существующего вопроса
+                    var existingQuestion = currentQuestionDict[questionRequest.Id.Value];
+
+                    // Удаляем из словаря, чтобы потом удалить оставшиеся
+                    currentQuestionDict.Remove(questionRequest.Id.Value);
+
+                    // Обновляем поля вопроса
+                    existingQuestion.Text = questionRequest.Text;
+                    existingQuestion.Type = questionRequest.Type;
+                    existingQuestion.Points = questionRequest.Points;
+                    existingQuestion.Order = questionRequest.Order;
+
+                    await _questionRepository.UpdateAsync(existingQuestion);
+
+                    // Обновляем варианты ответов
+                    await UpdateAnswerOptionsAsync(existingQuestion.Id, questionRequest.AnswerOptions);
+                }
+                else
+                {
+                    // Создание нового вопроса
+                    var newQuestion = new Question
+                    {
+                        ExamId = examId,
+                        Text = questionRequest.Text,
+                        Type = questionRequest.Type,
+                        Points = questionRequest.Points,
+                        Order = questionRequest.Order,
+                    };
+
+                    await _questionRepository.AddAsync(newQuestion);
+
+                    // Сохраняем ID для обновления вариантов ответов
+                    newQuestionIds[questionRequest.Order] = newQuestion.Id;
+
+                    // Создаем варианты ответов
+                    foreach (var optionRequest in questionRequest.AnswerOptions)
+                    {
+                        var option = new AnswerOption
+                        {
+                            QuestionId = newQuestion.Id,
+                            Text = optionRequest.Text,
+                            IsCorrect = optionRequest.IsCorrect,
+                            Order = optionRequest.Order ?? 0,
+                        };
+
+                        await _answerOptionRepository.AddAsync(option);
+                    }
+                }
+            }
+
+            // Удаляем вопросы, которые не были обновлены (удалены пользователем)
+            foreach (var questionToDelete in currentQuestionDict.Values)
+            {
+                await _questionRepository.DeleteAsync(questionToDelete);
+            }
+        }
+
+        // Добавляем метод для обновления вариантов ответов
+        private async Task UpdateAnswerOptionsAsync(int questionId, List<UpdateAnswerOptionRequest> optionRequests)
+        {
+            // Получаем текущие варианты ответов
+            var currentOptions = await _answerOptionRepository.GetAnswerOptionsByQuestionAsync(questionId);
+            var currentOptionDict = currentOptions.ToDictionary(o => o.Id);
+
+            foreach (var optionRequest in optionRequests)
+            {
+                if (optionRequest.Id.HasValue && currentOptionDict.ContainsKey(optionRequest.Id.Value))
+                {
+                    // Обновление существующего варианта
+                    var existingOption = currentOptionDict[optionRequest.Id.Value];
+
+                    // Удаляем из словаря, чтобы потом удалить оставшиеся
+                    currentOptionDict.Remove(optionRequest.Id.Value);
+
+                    // Обновляем поля варианта
+                    existingOption.Text = optionRequest.Text;
+                    existingOption.IsCorrect = optionRequest.IsCorrect;
+                    existingOption.Order = optionRequest.Order ?? existingOption.Order;
+
+                    await _answerOptionRepository.UpdateAsync(existingOption);
+                }
+                else
+                {
+                    // Создание нового варианта ответа
+                    var newOption = new AnswerOption
+                    {
+                        QuestionId = questionId,
+                        Text = optionRequest.Text,
+                        IsCorrect = optionRequest.IsCorrect,
+                        Order = optionRequest.Order ?? 0,
+                    };
+
+                    await _answerOptionRepository.AddAsync(newOption);
+                }
+            }
+
+            // Удаляем варианты ответов, которые не были обновлены
+            foreach (var optionToDelete in currentOptionDict.Values)
+            {
+                await _answerOptionRepository.DeleteAsync(optionToDelete);
+            }
         }
 
         private ExamResponse MapToExamResponse(Exam exam)

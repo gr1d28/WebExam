@@ -80,7 +80,6 @@ namespace WebExam.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous]
         public async Task<IActionResult> GetExams([FromQuery] bool publishedOnly = true)
         {
             try

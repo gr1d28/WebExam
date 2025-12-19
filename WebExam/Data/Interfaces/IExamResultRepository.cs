@@ -12,5 +12,6 @@ namespace WebExam.Data.Interfaces
         Task<double> GetAverageScoreAsync(int examId);
         Task<int> GetPassedCountAsync(int examId);
         Task<bool> HasPassedExamAsync(int userId, int examId);
+        Task<IEnumerable<ExamResult>> GetExamAttemptsWithUsersAsync(int examId);
     }
 }
